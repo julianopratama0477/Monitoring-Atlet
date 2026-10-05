@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="id">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#f36b32">
+	<title>Monitoring Latihan Atlet</title>
+	<style>
+		:root {
+			color-scheme: light;
+			--ink: #292b28;
+			--muted: #797a73;
+			--line: #e9e8e3;
+			--paper: #fffefa;
+			--canvas: #f7f6f2;
+			--orange: #f36b32;
+			--orange-dark: #d65321;
+			--orange-pale: #fff0e8;
+			--green: #36816b;
+			--green-pale: #e8f4ee;
+			--yellow: #e9b64b;
+			--shadow: 0 18px 55px rgba(46, 42, 33, .08);
+			font-family: "Aptos", "Segoe UI", sans-serif;
+		}
+		* { box-sizing: border-box; }
+		body { margin: 0; background: var(--canvas); color: var(--ink); min-width: 320px; }
+		button, input, select, textarea { font: inherit; }
+		button { cursor: pointer; }
+		.shell { min-height: 100vh; display: grid; grid-template-columns: 248px minmax(0, 1fr); }
+		.sidebar { background: var(--paper); border-right: 1px solid var(--line); padding: 27px 17px 20px; display: flex; flex-direction: column; min-height: 100vh; }
+		.brand { display: flex; align-items: center; gap: 11px; padding: 0 9px 29px; }
+		.brand-mark { width: 35px; height: 35px; display: grid; place-items: center; border-radius: 11px; color: white; background: var(--orange); }
+		.brand-mark svg { width: 21px; height: 21px; }
+		.brand-name { font-size: 14px; font-weight: 750; line-height: 1.25; letter-spacing: 0; }
+		.brand-name span { display: block; color: var(--muted); font-size: 10px; font-weight: 500; margin-top: 3px; }
+		.nav-label { color: #9a9a91; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 0 11px; margin: 8px 0 10px; }
+		.nav-list { display: grid; gap: 4px; }
+		.nav-item { border: 0; background: transparent; color: #66675f; text-align: left; display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 7px; font-size: 13px; font-weight: 600; transition: background .16s, color .16s; }
+		.nav-item:hover { background: #f7f5f0; color: var(--ink); }
+		.nav-item.active { background: var(--orange-pale); color: var(--orange-dark); }
+			.unread-dot { width: 6px; height: 6px; background: var(--orange); border-radius: 50%; margin-left: auto; }
+		.nav-item svg { width: 17px; height: 17px; flex: none; }
+		.side-bottom { margin-top: auto; }
+		.coach-note { margin: 8px 5px 18px; padding: 13px; background: #f8f6f1; border-radius: 7px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+		.profile { border-top: 1px solid var(--line); padding: 17px 7px 0; display: flex; align-items: center; gap: 10px; }
+		.avatar { width: 35px; height: 35px; border-radius: 50%; display: grid; place-items: center; color: var(--orange-dark); background: var(--orange-pale); font-size: 12px; font-weight: 750; flex: none; }
+		.profile-copy { min-width: 0; flex: 1; }
+		.profile-copy strong { display: block; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+		.profile-copy span { font-size: 10px; color: var(--muted); }
+		.switch-role { color: var(--muted); background: transparent; border: 0; padding: 5px; }
+		.switch-role svg { width: 16px; height: 16px; display: block; }
+		main { min-width: 0; }
+		.topbar { height: 68px; background: rgba(255,254,250,.9); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 0 38px; }
+		.breadcrumb { color: var(--muted); font-size: 12px; }
+		.breadcrumb strong { color: var(--ink); font-weight: 650; }
+		.today { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; }
+		.today svg { color: var(--orange); width: 15px; height: 15px; }
+		.content { max-width: 1280px; padding: 34px 38px 54px; margin: 0 auto; }
+		.page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 25px; animation: arrive .35s ease both; }
+		.eyebrow { color: var(--orange-dark); text-transform: uppercase; font-size: 10px; letter-spacing: .09em; font-weight: 750; margin-bottom: 8px; }
+		h1 { font-size: 26px; line-height: 1.2; margin: 0; letter-spacing: 0; font-weight: 720; }
+		.subtitle { margin: 7px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+		.button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid transparent; border-radius: 6px; min-height: 39px; padding: 0 14px; font-size: 12px; font-weight: 680; transition: background .16s, transform .16s; }
+		.button:hover { transform: translateY(-1px); }
+		.button svg { width: 15px; height: 15px; }
+		.button-primary { color: white; background: var(--orange); }
+		.button-primary:hover { background: var(--orange-dark); }
+		.button-secondary { color: var(--ink); background: var(--paper); border-color: var(--line); }
+		.button-secondary:hover { background: #f7f5f0; }
+		.stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 13px; margin-bottom: 17px; }
+		.stat { background: var(--paper); border: 1px solid var(--line); border-radius: 7px; padding: 17px 18px; min-height: 100px; }
+		.stat-top { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 11px; }
+		.stat-icon { width: 28px; height: 28px; border-radius: 7px; display: grid; place-items: center; color: var(--orange-dark); background: var(--orange-pale); }
+		.stat-icon.green { color: var(--green); background: var(--green-pale); }
+		.stat-icon svg { width: 15px; height: 15px; }
+		.stat-value { font-size: 24px; font-weight: 730; margin-top: 7px; letter-spacing: 0; }
+		.stat-value small { font-size: 11px; color: var(--muted); font-weight: 500; }
+		.panel { background: var(--paper); border: 1px solid var(--line); border-radius: 7px; }
+		.panel-head { min-height: 58px; padding: 14px 18px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+		.panel-head h2 { margin: 0; font-size: 13px; font-weight: 700; }
+		.panel-head p { margin: 4px 0 0; color: var(--muted); font-size: 10px; }
+		.panel-body { padding: 17px 18px; }
+		.dashboard-grid { display: grid; grid-template-columns: minmax(0,1.65fr) minmax(260px,.9fr); gap: 15px; }
+		.chart-tools { display: flex; align-items: center; gap: 8px; }
+		.select-compact { border: 1px solid var(--line); background: white; padding: 7px 28px 7px 9px; border-radius: 5px; font-size: 10px; color: var(--ink); }
+		.chart-wrap { height: 226px; width: 100%; }
+		.chart-wrap svg { width: 100%; height: 100%; overflow: visible; }
+		.chart-empty { min-height: 220px; display: grid; place-content: center; text-align: center; color: var(--muted); font-size: 12px; gap: 6px; }
+		.chart-empty strong { color: var(--ink); font-size: 13px; }
+		.chart-legend { color: var(--muted); display: flex; align-items: center; gap: 7px; font-size: 10px; }
+		.legend-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); }
+		.activity-list { display: grid; }
+		.activity-row { display: flex; align-items: center; gap: 11px; padding: 12px 0; border-bottom: 1px solid #f0efeb; }
+		.activity-row:last-child { border: 0; padding-bottom: 0; }
+		.activity-mark { width: 31px; height: 31px; display: grid; place-items: center; border-radius: 50%; color: var(--orange-dark); background: var(--orange-pale); flex: none; }
+		.activity-mark svg { width: 14px; height: 14px; }
+		.activity-copy { min-width: 0; flex: 1; }
+		.activity-copy strong { display: block; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+		.activity-copy span { display: block; margin-top: 3px; font-size: 10px; color: var(--muted); }
+		.fatigue-tag { border-radius: 4px; padding: 5px 7px; font-size: 10px; color: var(--orange-dark); background: var(--orange-pale); white-space: nowrap; }
+		.section-gap { margin-top: 15px; }
+		.table-wrap { overflow-x: auto; }
+		table { width: 100%; border-collapse: collapse; white-space: nowrap; text-align: left; }
+		th { font-size: 9px; text-transform: uppercase; letter-spacing: .06em; color: #8c8c84; font-weight: 700; padding: 11px 14px; border-bottom: 1px solid var(--line); }
+		td { padding: 12px 14px; border-bottom: 1px solid #f0efeb; font-size: 11px; color: #51524d; }
+		tr:last-child td { border-bottom: 0; }
+		td strong { color: var(--ink); font-weight: 650; }
+		.table-person { display: flex; align-items: center; gap: 8px; }
+		.table-person .avatar { width: 26px; height: 26px; font-size: 9px; }
+		.badge { display: inline-flex; align-items: center; border-radius: 4px; padding: 5px 7px; background: var(--green-pale); color: var(--green); font-size: 9px; }
+		.badge.high { background: var(--orange-pale); color: var(--orange-dark); }
+		.form-panel { max-width: 810px; }
+		.form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); column-gap: 16px; row-gap: 16px; }
+		.field { display: grid; gap: 6px; min-width: 0; }
+		.field.full { grid-column: 1 / -1; }
+		.field label { font-size: 11px; font-weight: 650; color: #55564f; }
+		.field input, .field select, .field textarea { width: 100%; border: 1px solid #deddd6; background: white; color: var(--ink); border-radius: 5px; min-height: 39px; padding: 9px 11px; outline: 0; font-size: 12px; }
+		.field textarea { min-height: 100px; resize: vertical; }
+		.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(243,107,50,.12); }
+		.field-hint { color: var(--muted); font-size: 10px; line-height: 1.45; }
+		.rating-row { display: flex; align-items: center; gap: 7px; }
+		.rating-option { position: relative; }
+		.rating-option input { position: absolute; opacity: 0; pointer-events: none; }
+		.rating-option label { width: 43px; height: 39px; display: grid; place-items: center; border: 1px solid #deddd6; border-radius: 5px; background: white; font-size: 12px; cursor: pointer; }
+		.rating-option input:checked + label { color: var(--orange-dark); border-color: var(--orange); background: var(--orange-pale); }
+		.form-actions { margin-top: 21px; display: flex; justify-content: flex-end; gap: 8px; }
+		.message-list { display: grid; gap: 10px; }
+		.message { padding: 15px 16px; border: 1px solid var(--line); border-left: 3px solid var(--orange); border-radius: 5px; background: white; }
+		.message-head { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; }
+		.message-head span { color: var(--muted); font-size: 10px; }
+		.message p { margin: 9px 0 0; color: #5d5e57; font-size: 12px; line-height: 1.6; white-space: pre-wrap; }
+		.empty-state { padding: 38px 15px; color: var(--muted); text-align: center; font-size: 12px; }
+		.empty-state strong { display: block; color: var(--ink); font-size: 13px; margin-bottom: 5px; }
+		.toast { position: fixed; right: 22px; bottom: 22px; z-index: 5; display: flex; align-items: center; gap: 9px; color: white; background: #292b28; border-radius: 6px; padding: 12px 16px; box-shadow: var(--shadow); font-size: 12px; animation: arrive .2s ease both; }
+		.toast svg { color: #a8e2c6; width: 16px; height: 16px; }
+		.login-screen { min-height: 100vh; display: grid; grid-template-columns: minmax(320px, .85fr) 1.15fr; background: var(--paper); }
+		.login-art { min-height: 100vh; padding: 42px 7vw; color: white; background: var(--orange); display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+		.login-art::after { content: ""; position: absolute; width: 440px; height: 440px; border: 1px solid rgba(255,255,255,.19); border-radius: 50%; right: -190px; bottom: -160px; box-shadow: 0 0 0 42px rgba(255,255,255,.04), 0 0 0 86px rgba(255,255,255,.04); }
+		.login-art .brand { padding: 0; position: relative; z-index: 1; }
+		.login-art .brand-mark { color: var(--orange); background: white; }
+		.login-art .brand-name span { color: rgba(255,255,255,.75); }
+		.art-copy { max-width: 390px; position: relative; z-index: 1; margin: auto 0; padding: 54px 0; }
+		.art-copy .eyebrow { color: #ffe2d1; }
+		.art-copy h1 { font-size: clamp(34px, 4vw, 50px); line-height: 1.12; max-width: 380px; }
+		.art-copy p { color: rgba(255,255,255,.83); font-size: 14px; line-height: 1.7; max-width: 360px; margin-top: 17px; }
+		.art-footer { position: relative; z-index: 1; color: rgba(255,255,255,.75); font-size: 10px; }
+		.login-main { display: grid; place-items: center; padding: 36px; }
+		.login-box { width: min(100%, 410px); animation: arrive .4s ease both; }
+		.login-box h2 { margin: 0; font-size: 24px; letter-spacing: 0; }
+		.login-box > p { color: var(--muted); font-size: 12px; margin: 8px 0 25px; }
+		.mode-picker { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; background: #f3f2ed; border-radius: 6px; margin-bottom: 20px; }
+		.mode-picker button { border: 0; background: transparent; padding: 10px; border-radius: 4px; color: var(--muted); font-size: 11px; font-weight: 650; }
+		.mode-picker button.selected { background: white; color: var(--orange-dark); box-shadow: 0 1px 4px rgba(30,30,20,.1); }
+		.login-box .field { margin-bottom: 14px; }
+		.login-hint { margin-top: 17px; padding: 12px; background: #f8f6f1; border-radius: 5px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+		.login-box .button { width: 100%; margin-top: 7px; }
+		.auth-error { margin: 0 0 12px; color: #b63d20; background: #fff0e8; border-radius: 5px; padding: 9px 10px; font-size: 11px; line-height: 1.45; }
+		.auth-success { margin: 0 0 12px; color: #276b50; background: #e8f4ee; border-radius: 5px; padding: 9px 10px; font-size: 11px; line-height: 1.45; }
+		.auth-toggle { display: block; width: 100%; margin-top: 16px; padding: 6px; border: 0; background: transparent; color: var(--orange-dark); font-size: 11px; font-weight: 650; }
+		@keyframes arrive { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+		@media (max-width: 950px) {
+			.shell { grid-template-columns: 210px minmax(0,1fr); }
+			.topbar { padding: 0 24px; }
+			.content { padding: 28px 24px 42px; }
+			.dashboard-grid { grid-template-columns: 1fr; }
+			.stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+		}
+		@media (max-width: 650px) {
+			.shell { display: block; padding-bottom: 61px; }
+			.sidebar { position: fixed; z-index: 4; left: 0; right: 0; bottom: 0; top: auto; min-height: 0; height: 61px; padding: 4px 5px; border-right: 0; border-top: 1px solid var(--line); display: block; }
+			.brand, .nav-label, .side-bottom { display: none; }
+			.nav-list { height: 100%; display: flex; justify-content: space-around; gap: 2px; }
+			.nav-item { flex: 1; min-width: 0; justify-content: center; flex-direction: column; gap: 3px; padding: 5px 2px; border-radius: 5px; font-size: 9px; }
+			.nav-item svg { width: 18px; height: 18px; }
+			.topbar { height: 55px; padding: 0 17px; }
+			.today { font-size: 9px; }
+			.content { padding: 25px 16px 31px; }
+			.page-heading { align-items: flex-start; }
+			h1 { font-size: 22px; }
+			.page-heading > .button { padding: 0 10px; font-size: 10px; min-height: 36px; }
+			.stats { gap: 9px; }
+			.stat { padding: 13px; min-height: 89px; }
+			.stat-value { font-size: 21px; }
+			.panel-head, .panel-body { padding-left: 13px; padding-right: 13px; }
+			.chart-wrap { height: 190px; }
+			.form-grid { grid-template-columns: 1fr; }
+			.field.full { grid-column: auto; }
+			.login-screen { display: flex; flex-direction: column; }
+			.login-art { min-height: 0; padding: 22px 23px 17px; }
+			.art-copy { padding: 30px 0 24px; }
+			.art-copy h1 { font-size: 30px; }
+			.art-copy p { font-size: 12px; margin-bottom: 0; }
+			.art-footer { display: none; }
+			.login-main { padding: 29px 22px 38px; }
+			.login-box h2 { font-size: 21px; }
+		}
+	</style>
+</head>
+<body>
+	<div id="app"></div>
+	<script>
+		const icons = {
+			pulse: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+			home: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1z"/>',
+			clipboard: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5M8 10h8M8 14h8M8 18h5"/>',
+			chart: '<path d="M3 3v18h18M8 15l4-4 4 3 5-7"/>',
+			clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+			message: '<path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/>',
+			users: '<path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM20 8v6M23 11h-6"/>',
+			calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/>',
+			arrow: '<path d="M7 17 17 7M7 7h10v10"/>',
+			weight: '<path d="M6 3h12l3 18H3L6 3zM9 8a3 3 0 0 1 6 0"/>',
+			plus: '<path d="M12 5v14M5 12h14"/>',
+			check: '<path d="m5 12 4 4L19 6"/>',
+			logout: '<path d="M10 17l5-5-5-5M15 12H3M21 19V5a2 2 0 0 0-2-2h-6"/>',
+			bolt: '<path d="m13 2-3 8h8L9 22l3-9H5l8-11z"/>'
+		};
+		const icon = (name) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + icons[name] + '</svg>';
+		const initialReports = [
+			{ id: 'demo-1', athlete: 'Nadia Putri', date: '2026-09-25', time: '07:15', age: 19, gender: 'Perempuan', height: 165, weight: 56, sport: 'Atletik', fatigue: 3 },
+			{ id: 'demo-2', athlete: 'Nadia Putri', date: '2026-09-28', time: '07:00', age: 19, gender: 'Perempuan', height: 165, weight: 55.8, sport: 'Atletik', fatigue: 2 },
+			{ id: 'demo-3', athlete: 'Rizky Pratama', date: '2026-09-28', time: '16:20', age: 21, gender: 'Laki-laki', height: 174, weight: 68, sport: 'Renang', fatigue: 4 },
+			{ id: 'demo-4', athlete: 'Nadia Putri', date: '2026-10-01', time: '07:10', age: 19, gender: 'Perempuan', height: 165, weight: 55.5, sport: 'Atletik', fatigue: 3 },
+			{ id: 'demo-5', athlete: 'Dimas Saputra', date: '2026-10-02', time: '16:00', age: 20, gender: 'Laki-laki', height: 178, weight: 72, sport: 'Bulutangkis', fatigue: 2 },
+			{ id: 'demo-6', athlete: 'Nadia Putri', date: '2026-10-04', time: '07:05', age: 19, gender: 'Perempuan', height: 165, weight: 55.2, sport: 'Atletik', fatigue: 2 }
+		];
+		const load = (key, fallback) => { try { const value = localStorage.getItem(key); return value ? JSON.parse(value) : fallback; } catch { return fallback; } };
+		let reports = load('monitoring-reports-v1', initialReports);
+		let messages = load('monitoring-messages-v1', []);
+		const accounts = load('monitoring-accounts-v1', []);
+		let session = load('monitoring-session-v1', null);
+		let selectedMode = 'athlete';
+		let lobbyMode = 'login';
+		let lobbyError = '';
+		let lobbySuccess = '';
+		let directory = [];
+		let pendingRecipient = '';
+		let activePage = 'dashboard';
+		let chartMetric = 'fatigue';
+		if (session && !accounts.some((account) => account.username === session.username && account.role === session.role)) {
+			session = null;
+			localStorage.removeItem('monitoring-session-v1');
+		}
+		const save = () => {
+			localStorage.setItem('monitoring-reports-v1', JSON.stringify(reports));
+			localStorage.setItem('monitoring-messages-v1', JSON.stringify(messages));
+			localStorage.setItem('monitoring-accounts-v1', JSON.stringify(accounts));
+			if (session) localStorage.setItem('monitoring-session-v1', JSON.stringify(session));
+		};
+		const safe = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+		const fmtDate = (value) => new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(value + 'T12:00:00'));
+		const sortedReports = (items) => [...items].sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
+		const athleteReports = () => reports.filter((item) => item.athleteId === session.username || (!item.athleteId && item.athlete.toLowerCase() === session.name.toLowerCase()));
+		const navItems = () => session.role === 'athlete'
+			? [['dashboard', 'Ringkasan', 'home'], ['report', 'Laporan latihan', 'clipboard'], ['progress', 'Perkembangan', 'chart'], ['history', 'Riwayat latihan', 'clock'], ['messages', 'Pesan pelatih', 'message']]
+			: [['dashboard', 'Dasbor', 'home'], ['archive', 'Arsip latihan atlet', 'clock'], ['messages', 'Kirim feedback', 'message']];
+		const setPage = (page) => { activePage = page; render(); };
+		const pageTitle = () => ({ dashboard: session.role === 'athlete' ? 'Ringkasan latihan' : 'Dasbor pelatih', report: 'Laporan latihan', progress: 'Perkembangan', history: 'Riwayat latihan', messages: session.role === 'athlete' ? 'Pesan dari pelatih' : 'Kirim feedback', archive: 'Arsip latihan atlet' }[activePage] || 'Ringkasan');
+		function loginView() {
+			const registering = lobbyMode === 'register';
+			return `<div class="login-screen"><section class="login-art"><div class="brand"><div class="brand-mark">${icon('pulse')}</div><div class="brand-name">MONITORING ATLET<span>Latihan terukur, prestasi bertumbuh</span></div></div><div class="art-copy"><div class="eyebrow">Ruang latihan digital</div><h1>Setiap latihan punya cerita.</h1><p>Catat proses, pantau perkembangan, dan jaga komunikasi atlet-pelatih tetap terhubung.</p></div><div class="art-footer">MONITORING LATIHAN ATLET · 2026</div></section><section class="login-main"><form class="login-box" id="auth-form"><h2>${registering ? 'Buat akun' : 'Selamat datang'}</h2><p>${registering ? 'Daftar untuk mulai menggunakan ruang latihan.' : 'Masuk menggunakan akun yang sudah terdaftar.'}</p>${registering ? `<div class="mode-picker"><button type="button" data-mode="athlete" class="${selectedMode === 'athlete' ? 'selected' : ''}">Atlet</button><button type="button" data-mode="coach" class="${selectedMode === 'coach' ? 'selected' : ''}">Pelatih</button></div>` : ''}<div class="field"><label for="auth-username">Username</label><input id="auth-username" name="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9._-]{3,24}" autocomplete="username" placeholder="3–24 karakter"></div><div class="field"><label for="auth-password">Password</label><input id="auth-password" name="password" type="password" required minlength="8" autocomplete="${registering ? 'new-password' : 'current-password'}" placeholder="${registering ? 'Minimal 8 karakter, huruf dan angka' : 'Masukkan password'}"></div>${registering ? '<div class="field"><label for="auth-confirm">Konfirmasi password</label><input id="auth-confirm" name="confirm" type="password" required minlength="8" autocomplete="new-password" placeholder="Ulangi password"></div>' : ''}<p class="auth-error" id="auth-error" role="alert" ${lobbyError ? '' : 'hidden'}>${safe(lobbyError)}</p><button class="button button-primary" type="submit">${registering ? `Daftar sebagai ${selectedMode === 'athlete' ? 'atlet' : 'pelatih'}` : 'Masuk'} ${icon('arrow')}</button><div class="login-hint">${registering ? 'Peran akun tidak dapat diubah setelah pendaftaran. Password disimpan sebagai hash, bukan teks asli.' : 'Belum punya akun? Daftar terlebih dahulu untuk memilih peran.'}</div><button class="auth-toggle" id="toggle-auth" type="button">${registering ? 'Sudah punya akun? Masuk' : 'Belum punya akun? Daftar sekarang'}</button></form></section></div>`;
+		}
+		function shellView() {
+			const nav = navItems().map(([page, title, symbol]) => `<button class="nav-item ${activePage === page ? 'active' : ''}" data-page="${page}">${icon(symbol)}<span>${title}</span>${page === 'messages' && session.role === 'athlete' && messages.some((item) => (item.athleteId === session.username || (!item.athleteId && item.athlete.toLowerCase() === session.name.toLowerCase())) && !item.read) ? '<span class="unread-dot" aria-label="Pesan belum dibaca"></span>' : ''}</button>`).join('');
+			const now = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
+			return `<div class="shell"><aside class="sidebar"><div class="brand"><div class="brand-mark">${icon('pulse')}</div><div class="brand-name">MONITORING ATLET<span>Latihan terukur, prestasi bertumbuh</span></div></div><div class="nav-label">Menu utama</div><nav class="nav-list">${nav}</nav><div class="side-bottom">${session.role === 'coach' ? '<div class="coach-note">Pantau beban latihan dan kirim evaluasi langsung dari arsip atlet.</div>' : ''}<div class="profile"><div class="avatar">${safe(session.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase())}</div><div class="profile-copy"><strong>${safe(session.name)}</strong><span>${session.role === 'athlete' ? 'Atlet' : 'Pelatih'}</span></div><button class="switch-role" id="logout" title="Ganti pengguna" aria-label="Ganti pengguna">${icon('logout')}</button></div></div></aside><main><header class="topbar"><div class="breadcrumb">${session.role === 'athlete' ? 'Atlet' : 'Pelatih'} <span> / </span> <strong>${pageTitle()}</strong></div><div class="today">${icon('calendar')} ${safe(now)}</div></header><div class="content" id="content">${pageView()}</div></main></div>`;
+		}
+		function statCard(label, value, unit, symbol, green = false) {
+			return `<div class="stat"><div class="stat-top"><span>${label}</span><span class="stat-icon ${green ? 'green' : ''}">${icon(symbol)}</span></div><div class="stat-value">${value} <small>${unit}</small></div></div>`;
+		}
+		function reportRows(items, coach = false, limit = Infinity) {
+			const rows = sortedReports(items).slice(0, limit);
+			if (!rows.length) return `<tr><td colspan="${coach ? 7 : 6}"><div class="empty-state"><strong>Belum ada laporan</strong>${coach ? 'Laporan atlet akan muncul di sini.' : 'Laporan yang kamu kirim akan tersimpan di halaman ini.'}</div></td></tr>`;
+			return rows.map((item) => `<tr>${coach ? `<td><div class="table-person"><span class="avatar">${safe(item.athlete.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase())}</span><strong>${safe(item.athlete)}</strong></div></td>` : ''}<td>${fmtDate(item.date)}<br><span style="color:#97978e;font-size:10px">${safe(item.time)} WIB</span></td><td><strong>${safe(item.sport)}</strong></td><td>${safe(item.age)} th · ${safe(item.gender)}</td><td>${safe(item.height)} cm</td><td>${safe(item.weight)} kg</td><td><span class="badge ${item.fatigue >= 4 ? 'high' : ''}">${safe(item.fatigue)} / 5</span></td></tr>`).join('');
+		}
+		function tablePanel(items, coach = false, limit = Infinity) {
+			return `<div class="panel table-wrap"><table><thead><tr>${coach ? '<th>Atlet</th>' : ''}<th>Tanggal latihan</th><th>Cabang olahraga</th><th>Profil</th><th>Tinggi</th><th>Berat</th><th>Kelelahan</th></tr></thead><tbody>${reportRows(items, coach, limit)}</tbody></table></div>`;
+		}
+		function chartSvg(items) {
+			const ordered = sortedReports(items).reverse().slice(-12);
+			if (!ordered.length) return '<div class="chart-empty"><strong>Belum ada data untuk ditampilkan</strong>Kirim laporan latihan untuk mulai melihat perkembangan.</div>';
+			const values = ordered.map((item) => Number(item[chartMetric]));
+			const max = Math.max(...values), min = Math.min(...values);
+			const pad = chartMetric === 'fatigue' ? 0.6 : Math.max((max - min) * .35, chartMetric === 'weight' ? .5 : 1);
+			const low = chartMetric === 'fatigue' ? 1 : Math.max(0, min - pad), high = chartMetric === 'fatigue' ? 5 : max + pad;
+			const width = 640, height = 210, left = 37, right = 12, top = 14, bottom = 34;
+			const x = (index) => left + (ordered.length === 1 ? (width - left - right) / 2 : index * (width - left - right) / (ordered.length - 1));
+			const y = (value) => top + (high - value) * (height - top - bottom) / (high - low || 1);
+			const path = ordered.map((item, index) => `${index ? 'L' : 'M'} ${x(index)} ${y(Number(item[chartMetric]))}`).join(' ');
+			const unit = chartMetric === 'fatigue' ? '/ 5' : chartMetric === 'weight' ? 'kg' : 'cm';
+			const ticks = chartMetric === 'fatigue' ? [1, 2, 3, 4, 5] : [0, .5, 1].map((fraction) => low + (high - low) * fraction);
+			return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Grafik ${chartMetric === 'fatigue' ? 'tingkat kelelahan' : chartMetric === 'weight' ? 'berat badan' : 'tinggi badan'} berdasarkan waktu"><defs><linearGradient id="area-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#f36b32" stop-opacity=".16"/><stop offset="100%" stop-color="#f36b32" stop-opacity="0"/></linearGradient></defs>${ticks.map((tick) => `<line x1="${left}" x2="${width - right}" y1="${y(tick)}" y2="${y(tick)}" stroke="#eeede8" stroke-dasharray="3 4"/><text x="${left - 9}" y="${y(tick) + 3}" text-anchor="end" fill="#92928a" font-size="9">${Number(tick.toFixed(1))}</text>`).join('')}<path d="${path} L ${x(ordered.length - 1)} ${height - bottom} L ${x(0)} ${height - bottom} Z" fill="url(#area-fill)"/><path d="${path}" fill="none" stroke="#f36b32" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>${ordered.map((item, index) => `<circle cx="${x(index)}" cy="${y(Number(item[chartMetric]))}" r="4" fill="white" stroke="#f36b32" stroke-width="2"><title>${fmtDate(item.date)}: ${safe(item[chartMetric])} ${unit}</title></circle><text x="${x(index)}" y="${height - 9}" text-anchor="middle" fill="#92928a" font-size="9">${new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short' }).format(new Date(item.date + 'T12:00:00'))}</text>`).join('')}</svg>`;
+		}
+		function athleteDashboard() {
+			const own = athleteReports(), latest = sortedReports(own)[0], unread = messages.filter((item) => item.athlete.toLowerCase() === session.name.toLowerCase() && !item.read).length;
+			const avg = own.length ? (own.reduce((sum, item) => sum + Number(item.fatigue), 0) / own.length).toFixed(1) : '–';
+			return `<div class="page-heading"><div><div class="eyebrow">Ruang atlet</div><h1>Halo, ${safe(session.name.split(' ')[0])}.</h1><p class="subtitle">Pantau catatan latihan dan progresmu dari sini.</p></div><button class="button button-primary" data-page="report">${icon('plus')} Isi laporan latihan</button></div><div class="stats">${statCard('Total sesi tercatat', own.length, 'sesi', 'clipboard')}${statCard('Rata-rata kelelahan', avg, '/ 5', 'bolt', true)}${statCard('Berat terakhir', latest ? latest.weight : '–', latest ? 'kg' : '', 'weight')}${statCard('Pesan belum dibaca', unread, 'pesan', 'message', true)}</div><div class="dashboard-grid"><section class="panel"><div class="panel-head"><div><h2>Perkembangan latihan</h2><p>${own.length} sesi latihan tercatat</p></div><div class="chart-tools"><select class="select-compact" id="chart-metric" aria-label="Pilih metrik grafik"><option value="fatigue" ${chartMetric === 'fatigue' ? 'selected' : ''}>Kelelahan</option><option value="weight" ${chartMetric === 'weight' ? 'selected' : ''}>Berat badan</option><option value="height" ${chartMetric === 'height' ? 'selected' : ''}>Tinggi badan</option></select></div></div><div class="panel-body"><div class="chart-legend"><span class="legend-dot"></span>${chartMetric === 'fatigue' ? 'Rating kelelahan (1–5)' : chartMetric === 'weight' ? 'Berat badan (kg)' : 'Tinggi badan (cm)'}</div><div class="chart-wrap">${chartSvg(own)}</div></div></section><section class="panel"><div class="panel-head"><div><h2>Sesi terbaru</h2><p>Catatan latihan terakhir</p></div><button class="button button-secondary" data-page="history" style="min-height:30px;padding:0 9px;font-size:10px">Lihat semua ${icon('arrow')}</button></div><div class="panel-body"><div class="activity-list">${sortedReports(own).slice(0, 4).map((item) => `<div class="activity-row"><div class="activity-mark">${icon('pulse')}</div><div class="activity-copy"><strong>${safe(item.sport)}</strong><span>${fmtDate(item.date)} · ${safe(item.time)}</span></div><span class="fatigue-tag">${safe(item.fatigue)} / 5</span></div>`).join('') || '<div class="empty-state"><strong>Mulai catat latihanmu</strong>Laporan pertama akan muncul di sini.</div>'}</div></div></section></div><section class="section-gap"><div class="panel-head" style="padding-left:0;padding-right:0;border:0"><div><h2>Pesan pelatih</h2><p>${unread ? `${unread} pesan baru menunggu` : 'Evaluasi latihan terbarumu'}</p></div><button class="button button-secondary" data-page="messages" style="min-height:30px;padding:0 9px;font-size:10px">Buka pesan ${icon('arrow')}</button></div>${messageList(messages.filter((item) => item.athlete.toLowerCase() === session.name.toLowerCase()).slice(-2).reverse())}</section>`;
+		}
+		function coachDashboard() {
+			const unique = new Set(reports.map((item) => item.athlete.toLowerCase())).size;
+			const avg = reports.length ? (reports.reduce((sum, item) => sum + Number(item.fatigue), 0) / reports.length).toFixed(1) : '–';
+			const todayCount = reports.filter((item) => item.date === new Date().toISOString().slice(0, 10)).length;
+			return `<div class="page-heading"><div><div class="eyebrow">Ruang pelatih</div><h1>Selamat datang, ${safe(session.name.split(' ')[0])}.</h1><p class="subtitle">Pantau sesi latihan dan respons atlet dalam satu tempat.</p></div><button class="button button-primary" data-page="archive">${icon('clock')} Buka arsip atlet</button></div><div class="stats">${statCard('Atlet tercatat', unique, 'atlet', 'users')}${statCard('Total laporan', reports.length, 'sesi', 'clipboard')}${statCard('Rata-rata kelelahan', avg, '/ 5', 'bolt', true)}${statCard('Laporan hari ini', todayCount, 'sesi', 'calendar')}</div><section class="panel"><div class="panel-head"><div><h2>Laporan masuk terbaru</h2><p>Data latihan dari seluruh atlet</p></div><button class="button button-secondary" data-page="archive" style="min-height:30px;padding:0 9px;font-size:10px">Lihat arsip ${icon('arrow')}</button></div>${tablePanel(reports, true, 5)}</section><section class="panel section-gap"><div class="panel-head"><div><h2>Perlu perhatian</h2><p>Sesi dengan tingkat kelelahan tinggi</p></div></div><div class="panel-body"><div class="activity-list">${sortedReports(reports.filter((item) => Number(item.fatigue) >= 4)).slice(0, 4).map((item) => `<div class="activity-row"><div class="activity-mark">${icon('bolt')}</div><div class="activity-copy"><strong>${safe(item.athlete)} · ${safe(item.sport)}</strong><span>${fmtDate(item.date)} · ${safe(item.time)}</span></div><span class="fatigue-tag">${safe(item.fatigue)} / 5</span><button class="button button-secondary quick-feedback" data-athlete="${safe(item.athlete)}" style="min-height:30px;padding:0 9px;font-size:10px">Feedback</button></div>`).join('') || '<div class="empty-state"><strong>Semua dalam pantauan</strong>Belum ada sesi dengan rating kelelahan 4 atau 5.</div>'}</div></div></section>`;
+		}
+		function reportForm() {
+			const existing = athleteReports()[0];
+			return `<div class="page-heading"><div><div class="eyebrow">Catat sesi</div><h1>Laporan latihan</h1><p class="subtitle">Isi kondisi tubuhmu setelah menyelesaikan latihan.</p></div></div><section class="panel form-panel"><div class="panel-head"><div><h2>Detail sesi latihan</h2><p>Data ini dapat dilihat oleh pelatihmu.</p></div></div><div class="panel-body"><form id="report-form"><div class="form-grid"><div class="field"><label for="training-date">Tanggal latihan</label><input id="training-date" name="date" type="date" value="${new Date().toISOString().slice(0, 10)}" required></div><div class="field"><label for="training-time">Jam latihan</label><input id="training-time" name="time" type="time" value="${new Date().toTimeString().slice(0, 5)}" required></div><div class="field"><label for="athlete-name">Nama lengkap</label><input id="athlete-name" name="athlete" value="${safe(session.name)}" required></div><div class="field"><label for="age">Umur (tahun)</label><input id="age" name="age" type="number" min="5" max="100" value="${existing ? safe(existing.age) : ''}" placeholder="Contoh: 19" required></div><div class="field"><label for="gender">Jenis kelamin</label><select id="gender" name="gender" required><option value="">Pilih jenis kelamin</option><option ${existing?.gender === 'Perempuan' ? 'selected' : ''}>Perempuan</option><option ${existing?.gender === 'Laki-laki' ? 'selected' : ''}>Laki-laki</option><option ${existing?.gender === 'Memilih tidak menyebutkan' ? 'selected' : ''}>Memilih tidak menyebutkan</option></select></div><div class="field"><label for="sport">Cabang olahraga</label><select id="sport" name="sport" required><option value="">Pilih cabang olahraga</option>${['Atletik', 'Badminton', 'Bola basket', 'Bola voli', 'Futsal', 'Renang', 'Sepak bola', 'Taekwondo', 'Lainnya'].map((name) => `<option ${existing?.sport === name ? 'selected' : ''}>${name}</option>`).join('')}</select></div><div class="field"><label for="height">Tinggi badan (cm)</label><input id="height" name="height" type="number" min="80" max="250" step="0.1" value="${existing ? safe(existing.height) : ''}" placeholder="Contoh: 165" required></div><div class="field"><label for="weight">Berat badan (kg)</label><input id="weight" name="weight" type="number" min="20" max="300" step="0.1" value="${existing ? safe(existing.weight) : ''}" placeholder="Contoh: 56" required></div><div class="field full"><label>Tingkat kelelahan setelah latihan</label><div class="rating-row">${[1,2,3,4,5].map((rating) => `<span class="rating-option"><input id="fatigue-${rating}" type="radio" name="fatigue" value="${rating}" ${rating === 3 ? 'checked' : ''} required><label for="fatigue-${rating}">${rating}</label></span>`).join('')}<span class="field-hint">1 sangat segar · 5 sangat lelah</span></div></div></div><div class="form-actions"><button type="button" class="button button-secondary" data-page="dashboard">Batal</button><button type="submit" class="button button-primary">${icon('check')} Kirim laporan</button></div></form></div></section>`;
+		}
+		function messageList(items) {
+			if (!items.length) return '<div class="panel"><div class="empty-state"><strong>Belum ada pesan</strong>Pesan evaluasi dari pelatih akan muncul di sini.</div></div>';
+			return `<div class="message-list">${items.map((item) => `<article class="message"><div class="message-head"><strong>${safe(item.from || 'Pelatih')}</strong><span>${fmtDate(item.date)}</span></div><p>${safe(item.text)}</p></article>`).join('')}</div>`;
+		}
+		function messagesView() {
+			if (session.role === 'athlete') {
+				const own = messages.filter((item) => item.athleteId === session.username || (!item.athleteId && item.athlete.toLowerCase() === session.name.toLowerCase())).sort((a,b) => b.date.localeCompare(a.date));
+				messages = messages.map((item) => item.athleteId === session.username || (!item.athleteId && item.athlete.toLowerCase() === session.name.toLowerCase()) ? { ...item, read: true } : item);
+				save();
+				return `<div class="page-heading"><div><div class="eyebrow">Komunikasi</div><h1>Pesan dari pelatih</h1><p class="subtitle">Feedback dan evaluasi untuk perkembangan latihanmu.</p></div></div>${messageList(own)}`;
+			}
+			const names = [...new Set([...reports.map((item) => item.athlete), ...accounts.filter((account) => account.role === 'athlete').map((account) => account.displayName)])].sort((a, b) => a.localeCompare(b));
+			return `<div class="page-heading"><div><div class="eyebrow">Evaluasi atlet</div><h1>Kirim feedback</h1><p class="subtitle">Pesan akan muncul di akun atlet yang dipilih.</p></div></div><section class="panel form-panel"><div class="panel-head"><div><h2>Pesan evaluasi</h2><p>Pilih atlet dan tulis feedback secara langsung.</p></div></div><div class="panel-body"><form id="feedback-form"><div class="form-grid"><div class="field full"><label for="feedback-athlete">Atlet</label><select id="feedback-athlete" name="athlete" required><option value="">Pilih atlet</option>${names.map((name) => { const account = accounts.find((entry) => entry.role === 'athlete' && entry.displayName.toLowerCase() === name.toLowerCase()); return `<option value="${safe(account?.username || `legacy:${name}`)}">${safe(name)}</option>`; }).join('')}</select></div><div class="field full"><label for="feedback-text">Pesan</label><textarea id="feedback-text" name="text" placeholder="Tulis apresiasi, evaluasi, atau saran latihan..." required></textarea></div></div><div class="form-actions"><button class="button button-primary" type="submit">${icon('message')} Kirim feedback</button></div></form></div></section><section class="section-gap"><div class="panel-head" style="padding-left:0;padding-right:0;border:0"><div><h2>Feedback terkirim</h2><p>Pesan evaluasi yang sudah dikirim ke atlet.</p></div></div>${messageList([...messages].sort((a,b) => b.date.localeCompare(a.date)).map((item) => ({ ...item, from: `${item.from} → ${item.athlete}` })))}</section>`;
+		}
+		function pageView() {
+			if (activePage === 'dashboard') return session.role === 'athlete' ? athleteDashboard() : coachDashboard();
+			if (activePage === 'report' && session.role === 'athlete') return reportForm();
+			if (activePage === 'progress' && session.role === 'athlete') return `<div class="page-heading"><div><div class="eyebrow">Data perkembangan</div><h1>Perkembangan latihan</h1><p class="subtitle">Amati perubahan metrik tubuh dan respons latihan dari waktu ke waktu.</p></div></div><div class="stats">${statCard('Total sesi', athleteReports().length, 'sesi', 'clipboard')}${statCard('Rating terbaru', sortedReports(athleteReports())[0]?.fatigue ?? '–', '/ 5', 'bolt', true)}${statCard('Berat terbaru', sortedReports(athleteReports())[0]?.weight ?? '–', 'kg', 'weight')}${statCard('Cabang olahraga', new Set(athleteReports().map((item) => item.sport)).size, 'cabang', 'pulse')}</div><section class="panel"><div class="panel-head"><div><h2>Grafik perkembangan</h2><p>Perbandingan berdasarkan tanggal latihan</p></div><select class="select-compact" id="chart-metric" aria-label="Pilih metrik grafik"><option value="fatigue" ${chartMetric === 'fatigue' ? 'selected' : ''}>Kelelahan</option><option value="weight" ${chartMetric === 'weight' ? 'selected' : ''}>Berat badan</option><option value="height" ${chartMetric === 'height' ? 'selected' : ''}>Tinggi badan</option></select></div><div class="panel-body"><div class="chart-legend"><span class="legend-dot"></span>${chartMetric === 'fatigue' ? 'Rating kelelahan (1–5)' : chartMetric === 'weight' ? 'Berat badan (kg)' : 'Tinggi badan (cm)'}</div><div class="chart-wrap">${chartSvg(athleteReports())}</div></div></section><section class="section-gap"><div class="panel-head" style="padding-left:0;padding-right:0;border:0"><div><h2>Semua catatan</h2><p>Data laporan membentuk grafik perkembangan ini.</p></div></div>${tablePanel(athleteReports())}</section>`;
+			if (activePage === 'history' && session.role === 'athlete') return `<div class="page-heading"><div><div class="eyebrow">Catatan tersimpan</div><h1>Riwayat latihan</h1><p class="subtitle">${athleteReports().length} laporan tersimpan di akun ini.</p></div><button class="button button-primary" data-page="report">${icon('plus')} Laporan baru</button></div>${tablePanel(athleteReports())}`;
+			if (activePage === 'archive' && session.role === 'coach') return `<div class="page-heading"><div><div class="eyebrow">Rekaman latihan</div><h1>Arsip latihan atlet</h1><p class="subtitle">${reports.length} laporan dari ${new Set(reports.map((item) => item.athlete.toLowerCase())).size} atlet tersimpan pada perangkat ini.</p></div></div><div class="panel" style="padding:12px 14px;margin-bottom:13px;display:flex;gap:9px;align-items:center"><input id="archive-search" type="search" placeholder="Cari nama atlet atau cabang olahraga..." style="border:0;outline:0;flex:1;min-width:120px;font-size:11px;background:transparent"><span style="font-size:10px;color:var(--muted)">${icon('clock')} Arsip latihan</span></div><div id="archive-table">${tablePanel(reports, true)}</div>`;
+			if (activePage === 'messages') return messagesView();
+			return session.role === 'athlete' ? athleteDashboard() : coachDashboard();
+		}
+		function render() {
+			if (session && !accounts.some((account) => account.username === session.username && account.role === session.role)) {
+				session = null;
+				localStorage.removeItem('monitoring-session-v1');
+			}
+			if (!session) { document.getElementById('app').innerHTML = loginView(); bindLogin(); return; }
+			if (session.role === 'athlete' && !['dashboard','report','progress','history','messages'].includes(activePage)) activePage = 'dashboard';
+			if (session.role === 'coach' && !['dashboard','archive','messages'].includes(activePage)) activePage = 'dashboard';
+			document.getElementById('app').innerHTML = shellView();
+			document.querySelectorAll('[data-page]').forEach((button) => button.addEventListener('click', () => setPage(button.dataset.page)));
+			document.getElementById('logout').addEventListener('click', () => { session = null; localStorage.removeItem('monitoring-session-v1'); lobbyMode = 'login'; lobbyError = ''; activePage = 'dashboard'; render(); });
+			document.getElementById('chart-metric')?.addEventListener('change', (event) => { chartMetric = event.target.value; render(); });
+			document.getElementById('report-form')?.addEventListener('submit', submitReport);
+			document.getElementById('feedback-form')?.addEventListener('submit', submitFeedback);
+			document.getElementById('archive-search')?.addEventListener('input', filterArchive);
+			document.querySelectorAll('.quick-feedback').forEach((button) => button.addEventListener('click', () => { activePage = 'messages'; render(); const select = document.getElementById('feedback-athlete'); const option = [...(select?.options || [])].find((item) => item.textContent === button.dataset.athlete); if (select && option) select.value = option.value; }));
+		}
+		function bindLogin() {
+			document.querySelectorAll('[data-mode]').forEach((button) => button.addEventListener('click', () => { selectedMode = button.dataset.mode; lobbyError = ''; render(); }));
+			document.getElementById('toggle-auth').addEventListener('click', () => { lobbyMode = lobbyMode === 'login' ? 'register' : 'login'; lobbyError = ''; render(); });
+			document.getElementById('auth-form').addEventListener('submit', async (event) => {
+				event.preventDefault();
+				const data = Object.fromEntries(new FormData(event.currentTarget));
+				const username = data.username.trim().toLowerCase();
+				if (lobbyMode === 'register') {
+					if (!/^[a-z0-9._-]{3,24}$/.test(username)) { lobbyError = 'Username harus 3–24 karakter: huruf, angka, titik, garis bawah, atau tanda hubung.'; render(); return; }
+					if (accounts.some((account) => account.username === username)) { lobbyError = 'Username sudah digunakan. Silakan pilih username lain.'; render(); return; }
+					if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(data.password)) { lobbyError = 'Password minimal 8 karakter dan harus mengandung huruf serta angka.'; render(); return; }
+					if (data.password !== data.confirm) { lobbyError = 'Konfirmasi password tidak cocok.'; render(); return; }
+					try {
+						const salt = Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) => byte.toString(16).padStart(2, '0')).join('');
+						const passwordHash = await hashPassword(data.password, salt);
+						accounts.push({ username, role: selectedMode, displayName: username, salt, passwordHash });
+						session = { username, role: selectedMode, name: username };
+						lobbyError = '';
+						activePage = 'dashboard';
+						save();
+						render();
+					} catch {
+						lobbyError = 'Browser ini tidak menyediakan Web Crypto. Buka halaman melalui localhost atau browser modern.';
+						render();
+					}
+					return;
+				}
+				const account = accounts.find((entry) => entry.username === username);
+				if (!account) { lobbyError = 'Username atau password tidak cocok.'; render(); return; }
+				try {
+					const passwordHash = await hashPassword(data.password, account.salt);
+					if (!constantTimeEqual(passwordHash, account.passwordHash)) { lobbyError = 'Username atau password tidak cocok.'; render(); return; }
+					session = { username: account.username, role: account.role, name: account.displayName };
+					lobbyError = '';
+					activePage = 'dashboard';
+					save();
+					render();
+				} catch {
+					lobbyError = 'Autentikasi aman tidak tersedia di konteks browser ini. Buka halaman melalui localhost atau browser modern.';
+					render();
+				}
+			});
+		}
+		async function hashPassword(password, salt) {
+			if (!crypto.subtle) throw new Error('Web Crypto unavailable');
+			const saltBytes = new Uint8Array(salt.match(/.{2}/g).map((byte) => parseInt(byte, 16)));
+			const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+			const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: saltBytes, iterations: 210000, hash: 'SHA-256' }, key, 256);
+			return Array.from(new Uint8Array(bits), (byte) => byte.toString(16).padStart(2, '0')).join('');
+		}
+		function constantTimeEqual(left, right) {
+			if (typeof right !== 'string' || left.length !== right.length) return false;
+			let difference = 0;
+			for (let index = 0; index < left.length; index++) difference |= left.charCodeAt(index) ^ right.charCodeAt(index);
+			return difference === 0;
+		}
+		function submitReport(event) {
+			event.preventDefault();
+			const data = Object.fromEntries(new FormData(event.currentTarget));
+			const report = { ...data, athleteId: session.username, age: Number(data.age), height: Number(data.height), weight: Number(data.weight), fatigue: Number(data.fatigue), id: crypto.randomUUID?.() || String(Date.now()) };
+			reports.push(report);
+			session.name = report.athlete;
+			const account = accounts.find((entry) => entry.username === session.username);
+			if (account) account.displayName = report.athlete;
+			save();
+			activePage = 'history';
+			render();
+			toast('Laporan latihan berhasil disimpan');
+		}
+		function submitFeedback(event) {
+			event.preventDefault();
+			const data = Object.fromEntries(new FormData(event.currentTarget));
+			const account = accounts.find((entry) => entry.username === data.athlete);
+			const athlete = account?.displayName || data.athlete.replace(/^legacy:/, '');
+			messages.push({ athlete, athleteId: account?.username || null, text: data.text, from: session.name, date: new Date().toISOString().slice(0, 10), read: false, id: crypto.randomUUID?.() || String(Date.now()) });
+			save();
+			render();
+			toast(`Feedback terkirim ke ${data.athlete}`);
+		}
+		function filterArchive(event) {
+			const query = event.target.value.trim().toLowerCase();
+			const filtered = reports.filter((item) => `${item.athlete} ${item.sport}`.toLowerCase().includes(query));
+			document.getElementById('archive-table').innerHTML = tablePanel(filtered, true);
+		}
+		let toastTimer;
+		function toast(text) {
+			document.querySelector('.toast')?.remove();
+			const element = document.createElement('div');
+			element.className = 'toast';
+			element.innerHTML = `${icon('check')}<span>${safe(text)}</span>`;
+			document.body.append(element);
+			clearTimeout(toastTimer);
+			toastTimer = setTimeout(() => element.remove(), 2700);
+		}
+		function api(path, options = {}) {
+			const headers = new Headers(options.headers || {});
+			if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+			return fetch(path, { ...options, headers, credentials: 'same-origin' }).then(async (response) => {
+				const payload = await response.json().catch(() => ({}));
+				if (!response.ok) {
+					const error = new Error(payload.error || `Permintaan gagal (${response.status}).`);
+					error.status = response.status;
+					throw error;
+				}
+				return payload;
+			});
+		}
+		function toSession(user) {
+			return { username: user.email, email: user.email, role: user.role, name: user.display_name };
+		}
+		function loginView() {
+			const registering = lobbyMode === 'register';
+			return `<div class="login-screen"><section class="login-art"><div class="brand"><div class="brand-mark">${icon('pulse')}</div><div class="brand-name">MONITORING ATLET<span>Latihan terukur, prestasi bertumbuh</span></div></div><div class="art-copy"><div class="eyebrow">Ruang latihan digital</div><h1>Setiap latihan punya cerita.</h1><p>Catat proses, pantau perkembangan, dan jaga komunikasi atlet-pelatih tetap terhubung.</p></div><div class="art-footer">MONITORING LATIHAN ATLET · 2026</div></section><section class="login-main"><form class="login-box" id="auth-form"><h2>${registering ? 'Buat akun' : 'Selamat datang'}</h2><p>${registering ? 'Daftar dengan email aktif untuk mulai menggunakan ruang latihan.' : 'Masuk menggunakan email yang sudah terverifikasi.'}</p>${registering ? `<div class="mode-picker"><button type="button" data-mode="athlete" class="${selectedMode === 'athlete' ? 'selected' : ''}">Atlet</button><button type="button" data-mode="coach" class="${selectedMode === 'coach' ? 'selected' : ''}">Pelatih</button></div><div class="field"><label for="auth-name">Nama lengkap</label><input id="auth-name" name="display_name" required maxlength="80" autocomplete="name" placeholder="Nama yang ditampilkan"></div>` : ''}<div class="field"><label for="auth-email">Alamat email</label><input id="auth-email" name="email" type="email" required maxlength="254" autocomplete="email" placeholder="nama@contoh.com"></div><div class="field"><label for="auth-password">Password</label><input id="auth-password" name="password" type="password" required minlength="10" autocomplete="${registering ? 'new-password' : 'current-password'}" placeholder="${registering ? 'Minimal 10 karakter, huruf dan angka' : 'Masukkan password'}"></div>${registering ? '<div class="field"><label for="auth-confirm">Konfirmasi password</label><input id="auth-confirm" name="confirm" type="password" required minlength="10" autocomplete="new-password" placeholder="Ulangi password"></div>' : ''}${lobbyError ? `<p class="auth-error" role="alert">${safe(lobbyError)}</p>` : ''}${lobbySuccess ? `<p class="auth-success" role="status">${safe(lobbySuccess)}</p>` : ''}<button class="button button-primary" type="submit">${registering ? 'Daftar' : 'Masuk'} ${icon('arrow')}</button><button class="auth-toggle" id="toggle-auth" type="button">${registering ? 'Sudah punya akun? Masuk' : 'Belum punya akun? Daftar'}</button></form></section></div>`;
+		}
+		function bindLogin() {
+			document.querySelectorAll('[data-mode]').forEach((button) => button.addEventListener('click', () => { selectedMode = button.dataset.mode; lobbyError = ''; render(); }));
+			document.getElementById('toggle-auth').addEventListener('click', () => { lobbyMode = lobbyMode === 'login' ? 'register' : 'login'; lobbyError = ''; lobbySuccess = ''; render(); });
+			if (lobbyMode === 'login') {
+				const resendButton = document.createElement('button');
+				resendButton.type = 'button';
+				resendButton.className = 'auth-toggle';
+				resendButton.textContent = 'Kirim ulang verifikasi email';
+				document.getElementById('toggle-auth').after(resendButton);
+				resendButton.addEventListener('click', async () => {
+					const email = document.getElementById('auth-email').value.trim();
+					try {
+						await api('/api/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) });
+						lobbyError = '';
+						lobbySuccess = 'Jika akun belum terverifikasi, tautan baru akan dikirim ke email tersebut.';
+					} catch (error) {
+						lobbySuccess = '';
+						lobbyError = error.message;
+					}
+					render();
+				});
+			}
+			document.getElementById('auth-form').addEventListener('submit', async (event) => {
+				event.preventDefault();
+				const data = Object.fromEntries(new FormData(event.currentTarget));
+				lobbyError = '';
+				lobbySuccess = '';
+				try {
+					if (lobbyMode === 'register') {
+						if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email.trim())) throw new Error('Masukkan alamat email dengan format yang valid.');
+						if (!/(?=.*[A-Za-z])(?=.*\d).{10,}/.test(data.password)) throw new Error('Password minimal 10 karakter dan harus mengandung huruf serta angka.');
+						if (data.password !== data.confirm) throw new Error('Konfirmasi password tidak cocok.');
+						await api('/api/auth/register', { method: 'POST', body: JSON.stringify({ email: data.email.trim(), display_name: data.display_name.trim(), password: data.password, role: selectedMode }) });
+						lobbyMode = 'login';
+						lobbySuccess = 'Akun dibuat. Buka tautan verifikasi yang dikirim ke email sebelum masuk.';
+						render();
+						return;
+					}
+					const result = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ email: data.email.trim(), password: data.password }) });
+					session = toSession(result.user);
+					activePage = 'dashboard';
+					lobbySuccess = '';
+					[messages, reports] = await Promise.all([readMessages(false), readReports()]);
+					render();
+				} catch (error) {
+					lobbyError = error.message.includes('Failed to fetch') ? 'Layanan belum berjalan. Jalankan backend dan konfigurasi SMTP terlebih dahulu.' : error.message;
+					render();
+				}
+			});
+		}
+		function render() {
+			if (!session) {
+				document.getElementById('app').innerHTML = loginView();
+				bindLogin();
+				return;
+			}
+			if (session.role === 'athlete' && !['dashboard','report','progress','history','messages'].includes(activePage)) activePage = 'dashboard';
+			if (session.role === 'coach' && !['dashboard','archive','messages'].includes(activePage)) activePage = 'dashboard';
+			document.getElementById('app').innerHTML = shellView();
+			document.querySelectorAll('[data-page]').forEach((button) => button.addEventListener('click', () => openPage(button.dataset.page)));
+			document.getElementById('logout').addEventListener('click', async () => {
+				try { await api('/api/auth/logout', { method: 'POST', body: '{}' }); } catch { /* Clear the local view even if the server is unavailable. */ }
+				session = null;
+				messages = [];
+				directory = [];
+				activePage = 'dashboard';
+				lobbyMode = 'login';
+				render();
+			});
+			document.getElementById('chart-metric')?.addEventListener('change', (event) => { chartMetric = event.target.value; render(); });
+			const athleteNameField = document.getElementById('athlete-name');
+			if (athleteNameField) { athleteNameField.value = session.name; athleteNameField.readOnly = true; }
+			document.getElementById('report-form')?.addEventListener('submit', submitReport);
+			document.getElementById('feedback-form')?.addEventListener('submit', submitFeedback);
+			document.getElementById('message-form')?.addEventListener('submit', submitFeedback);
+			document.getElementById('archive-search')?.addEventListener('input', filterArchive);
+			document.querySelectorAll('.quick-feedback').forEach((button) => button.addEventListener('click', () => {
+				pendingRecipient = button.dataset.athlete;
+				openPage('messages');
+			}));
+		}
+		async function initialize() {
+			session = null;
+			localStorage.removeItem('monitoring-session-v1');
+			localStorage.removeItem('monitoring-accounts-v1');
+			try {
+				const result = await api('/api/auth/me');
+				session = toSession(result.user);
+				[messages, reports] = await Promise.all([readMessages(false), readReports()]);
+			} catch (error) {
+				if (error.status !== 401) lobbyError = error.message.includes('Failed to fetch') ? 'Backend belum aktif. Jalankan server lokal untuk mengakses akun.' : error.message;
+			}
+			render();
+		}
+		async function readMessages(markRead) {
+			const result = await api(`/api/messages${markRead ? '?mark_read=1' : ''}`);
+			return result.messages.map((item) => ({
+				id: item.id,
+				athlete: item.sender_role === 'athlete' ? item.from_name : item.to_name,
+				athleteId: item.sender_role === 'athlete' ? item.from_email : item.to_email,
+				from: `${item.from_name} → ${item.to_name}`,
+				fromEmail: item.from_email,
+				toEmail: item.to_email,
+				text: item.text,
+				date: item.created_at.slice(0, 10),
+				read: item.to_email !== session.email || item.read
+			}));
+		}
+		async function readReports() {
+			const result = await api('/api/reports');
+			return result.reports.map((report) => ({ ...report, athleteId: report.athlete_id }));
+		}
+		async function openPage(page) {
+			activePage = page;
+			if (page === 'messages') {
+				try {
+					const role = session.role === 'athlete' ? 'coach' : 'athlete';
+					const [userResult, inbox] = await Promise.all([api(`/api/users?role=${role}`), readMessages(true)]);
+					directory = userResult.users;
+					messages = inbox;
+				} catch (error) { toast(error.message); }
+			}
+			render();
+		}
+		function messagesView() {
+			const recipientOptions = directory.map((person) => `<option value="${safe(person.email)}" ${pendingRecipient === person.display_name ? 'selected' : ''}>${safe(person.display_name)} · ${safe(person.email)}</option>`).join('');
+			const history = [...messages].sort((left, right) => right.date.localeCompare(left.date));
+			return `<div class="page-heading"><div><div class="eyebrow">${session.role === 'athlete' ? 'Balas pesan' : 'Evaluasi atlet'}</div><h1>${session.role === 'athlete' ? 'Pesan dengan pelatih' : 'Kirim feedback'}</h1><p class="subtitle">Pesan tersimpan di kotak masuk dan email penerima.</p></div></div><section class="panel form-panel"><div class="panel-head"><div><h2>Pesan baru</h2><p>${session.role === 'athlete' ? 'Balas atau kirim pesan kepada pelatih.' : 'Kirim feedback langsung kepada atlet.'}</p></div></div><div class="panel-body"><form id="message-form"><div class="form-grid"><div class="field full"><label for="message-recipient">${session.role === 'athlete' ? 'Pelatih' : 'Atlet'}</label><select id="message-recipient" name="recipient_email" required><option value="">Pilih ${session.role === 'athlete' ? 'pelatih' : 'atlet'}</option>${recipientOptions}</select></div><div class="field full"><label for="feedback-text">Isi pesan</label><textarea id="feedback-text" name="text" maxlength="5000" placeholder="Tulis pesan atau evaluasi latihan..." required></textarea></div></div><div class="form-actions"><button class="button button-primary" type="submit">${icon('message')} Kirim pesan</button></div></form></div></section><section class="section-gap"><div class="panel-head" style="padding-left:0;padding-right:0;border:0"><div><h2>Riwayat pesan</h2><p>Pesan masuk dan pesan yang kamu kirim.</p></div></div>${messageList(history)}</section>`;
+		}
+		async function submitFeedback(event) {
+			event.preventDefault();
+			const form = event.currentTarget;
+			const data = Object.fromEntries(new FormData(form));
+			try {
+				const result = await api('/api/messages', { method: 'POST', body: JSON.stringify(data) });
+				messages = await readMessages(false);
+				render();
+				toast(result.email_delivered ? 'Pesan tersimpan dan email terkirim' : 'Pesan tersimpan, tetapi email belum terkirim');
+			} catch (error) {
+				toast(error.message);
+			}
+		}
+		async function submitReport(event) {
+			event.preventDefault();
+			const data = Object.fromEntries(new FormData(event.currentTarget));
+			try {
+				await api('/api/reports', { method: 'POST', body: JSON.stringify(data) });
+				reports = await readReports();
+				activePage = 'history';
+				render();
+				toast('Laporan latihan tersimpan di arsip');
+			} catch (error) {
+				toast(error.message);
+			}
+		}
+		initialize();
+	</script>
+</body>
+</html>
